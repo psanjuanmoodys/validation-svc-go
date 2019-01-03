@@ -30,20 +30,28 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 		panic(unmarshalErr)
 	}
 
-	for k, v := range m {
+	dataSlice := make([][][]string, 0)
+
+	for _, v := range m {
 		rType := reflect.TypeOf(v)
 		if rType.Kind() == reflect.Slice {
-			fmt.Println(v, ": ")
-			for ksub, vsub := range v {
-				fmt.Println(reflect.TypeOf(vsub).Kind())
-				fmt.Println("k: ", ksub)
+			dataSet := make([][]string, 0)
+			tmpSlice := make([]string, 0)
+			for _, vsub := range v {
+				// fmt.Println(reflect.TypeOf(vsub).Kind())
 				vmap := vsub.(map[string]interface{})
-				fmt.Println("distance: ", vmap["distance"], " dmp_id: ", vmap["dmp_id"], " apn: ", vmap["apn"])
+				for k := range vmap {
+					tmpSlice = append(tmpSlice, k)
+				}
+				dataSet = append(dataSet, tmpSlice)
+				tmpSlice = make([]string, 0) // reset tmp arr
 			}
-		} else {
-			fmt.Println("k: ", k, " v: ", v)
+			dataSlice = append(dataSlice, dataSet)
+			dataSet = make([][]string, 0) // reset dataset tmp arr
 		}
 	}
+
+	fmt.Println(dataSlice)
 	
 	isValid := ValidData{Valid: true};
 	json.NewEncoder(w).Encode(isValid)
