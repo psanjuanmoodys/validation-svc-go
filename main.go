@@ -14,6 +14,8 @@ import (
 )
 
 type ValidData struct {
+	DataHashOne string `json:"DataHashOne"`
+	DataHashTwo string `json:"DataHashTwo"`
 	Valid bool `json:"valid"`
 }
 
@@ -102,14 +104,21 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 	sort.Sort(byFirstValue(dataSlice[1]))
 
 	// Create hashes
-	// dataSetOne := sha256.New()
-	// dataSetTwo := sha256.New()
+	dataSetOne := sha256.New()
+	dataSetTwo := sha256.New()
 
-	// dataSetOne.Write([]byte(dataSlice[0]))
-	// dataSetTwo.Write([]byte(dataSlice[1]))
+	dataSetOne.Write([]byte(fmt.Sprintf("%b", dataSlice[0])))
+	dataSetTwo.Write([]byte(fmt.Sprintf("%b", dataSlice[1])))
 
+	hashOne := fmt.Sprintf("%x", dataSetOne.Sum(nil))
+	hashTwo := fmt.Sprintf("%x", dataSetTwo.Sum(nil))
+	
 	// Compare and validate
-	isValid := ValidData{Valid: true};
+	isValid := ValidData{
+		Valid: hashOne == hashTwo,
+		DataHashOne: hashOne,
+		DataHashTwo: hashTwo,
+	}
 	json.NewEncoder(w).Encode(isValid)
 }
 
