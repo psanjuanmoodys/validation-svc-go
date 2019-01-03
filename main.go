@@ -64,7 +64,7 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 
 	dataSlice := make([][][][]string, 0)
 
-	// Map data into two arrays (todo: needs flatten object/arr func)
+	// Map datasets into two arrays
 	for _, v := range m {
 		rType := reflect.TypeOf(v)
 		if rType.Kind() == reflect.Slice {
