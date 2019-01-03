@@ -32,16 +32,17 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 
 	dataSlice := make([][][]string, 0)
 
+	// Map data into two arrays
 	for _, v := range m {
 		rType := reflect.TypeOf(v)
 		if rType.Kind() == reflect.Slice {
 			dataSet := make([][]string, 0)
 			tmpSlice := make([]string, 0)
 			for _, vsub := range v {
-				// fmt.Println(reflect.TypeOf(vsub).Kind())
 				vmap := vsub.(map[string]interface{})
-				for k := range vmap {
-					tmpSlice = append(tmpSlice, k)
+				for k, val := range vmap {
+					pair := fmt.Sprintf("%s: %s", k, val)
+					tmpSlice = append(tmpSlice, pair)
 				}
 				dataSet = append(dataSet, tmpSlice)
 				tmpSlice = make([]string, 0) // reset tmp arr
@@ -51,7 +52,8 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Println(dataSlice)
+	fmt.Println(dataSlice[0])
+	fmt.Println(dataSlice[1])
 	
 	isValid := ValidData{Valid: true};
 	json.NewEncoder(w).Encode(isValid)
