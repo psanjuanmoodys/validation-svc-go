@@ -1,27 +1,27 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"crypto/sha256"
-	"fmt"
-	"encoding/json"
-	"io/ioutil"
 	"reflect"
-	"strconv"
 	"sort"
+	"strconv"
 )
 
 type ValidData struct {
 	DataHashOne string `json:"DataHashOne"`
 	DataHashTwo string `json:"DataHashTwo"`
-	Valid bool `json:"valid"`
+	Valid       bool   `json:"valid"`
 }
 
 type byKey [][]string
 
-type byFirstValue[][][]string
+type byFirstValue [][][]string
 
 func (k byKey) Len() int {
 	return len(k)
@@ -47,16 +47,16 @@ func (v byFirstValue) Less(i, j int) bool {
 	return v[i][0][1] < v[j][0][1]
 }
 
-func validateData (w http.ResponseWriter, r *http.Request) {
+func validateData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var m map[string][]interface{}
-	
+
 	body, readErr := ioutil.ReadAll(r.Body)
 	str := string(body)
 	if readErr != nil {
 		panic(readErr)
 	}
-	
+
 	unmarshalErr := json.Unmarshal([]byte(str), &m)
 	if unmarshalErr != nil {
 		panic(unmarshalErr)
@@ -78,7 +78,7 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 						strVal = strconv.FormatFloat(vmap[k].(float64), 'f', 6, 64)
 					} else {
 						strVal = vmap[k].(string)
-					} 
+					}
 					pair := []string{k, strVal}
 					tmpSlice = append(tmpSlice, pair)
 				}
@@ -94,13 +94,13 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 	for idx := range dataSlice[0] {
 		sort.Sort(byKey(dataSlice[0][idx]))
 	}
-	
+
 	sort.Sort(byFirstValue(dataSlice[0]))
 
 	for idx := range dataSlice[1] {
 		sort.Sort(byKey(dataSlice[1][idx]))
 	}
-	
+
 	sort.Sort(byFirstValue(dataSlice[1]))
 
 	// Create hashes
@@ -112,10 +112,10 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 
 	hashOne := fmt.Sprintf("%x", dataSetOne.Sum(nil))
 	hashTwo := fmt.Sprintf("%x", dataSetTwo.Sum(nil))
-	
+
 	// Compare and validate
 	isValid := ValidData{
-		Valid: hashOne == hashTwo,
+		Valid:       hashOne == hashTwo,
 		DataHashOne: hashOne,
 		DataHashTwo: hashTwo,
 	}
