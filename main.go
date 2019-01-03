@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
+	"strconv"
 )
 
 type ValidData struct {
@@ -30,25 +31,31 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 		panic(unmarshalErr)
 	}
 
-	dataSlice := make([][][]string, 0)
+	dataSlice := make([][][][]string, 0)
 
 	// Map data into two arrays (todo: needs flatten object/arr func)
 	for _, v := range m {
 		rType := reflect.TypeOf(v)
 		if rType.Kind() == reflect.Slice {
-			dataSet := make([][]string, 0)
-			tmpSlice := make([]string, 0)
+			dataSet := make([][][]string, 0)
+			tmpSlice := make([][]string, 0)
 			for _, vsub := range v {
 				vmap := vsub.(map[string]interface{})
 				for k, val := range vmap {
-					pair := fmt.Sprintf("%s: %s", k, val)
+					var strVal string
+					if reflect.TypeOf(val).Kind() == reflect.Float64 {
+						strVal = strconv.FormatFloat(vmap[k].(float64), 'f', 6, 64)
+					} else {
+						strVal = vmap[k].(string)
+					} 
+					pair := []string{k, strVal}
 					tmpSlice = append(tmpSlice, pair)
 				}
 				dataSet = append(dataSet, tmpSlice)
-				tmpSlice = make([]string, 0) // reset tmp arr
+				tmpSlice = make([][]string, 0) // reset tmp arr
 			}
 			dataSlice = append(dataSlice, dataSet)
-			dataSet = make([][]string, 0) // reset dataset tmp arr
+			dataSet = make([][][]string, 0) // reset dataset tmp arr
 		}
 	}
 
