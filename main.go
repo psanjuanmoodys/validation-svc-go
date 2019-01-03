@@ -4,16 +4,45 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	// "crypto/sha256"
+	"crypto/sha256"
 	"fmt"
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
 	"strconv"
+	"sort"
 )
 
 type ValidData struct {
 	Valid bool `json:"valid"`
+}
+
+type byKey [][]string
+
+type byFirstValue[][][]string
+
+func (k byKey) Len() int {
+	return len(k)
+}
+
+func (k byKey) Swap(i, j int) {
+	k[i], k[j] = k[j], k[i]
+}
+
+func (k byKey) Less(i, j int) bool {
+	return k[i][0] < k[j][0]
+}
+
+func (v byFirstValue) Len() int {
+	return len(v)
+}
+
+func (v byFirstValue) Swap(i, j int) {
+	v[i], v[j] = v[j], v[i]
+}
+
+func (v byFirstValue) Less(i, j int) bool {
+	return v[i][0][1] < v[j][0][1]
 }
 
 func validateData (w http.ResponseWriter, r *http.Request) {
@@ -59,14 +88,25 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Println(dataSlice[0])
-	fmt.Println(dataSlice[1])
-	
-	// Sort keys
-
 	// Sort datasets
+	for idx := range dataSlice[0] {
+		sort.Sort(byKey(dataSlice[0][idx]))
+	}
+	
+	sort.Sort(byFirstValue(dataSlice[0]))
+
+	for idx := range dataSlice[1] {
+		sort.Sort(byKey(dataSlice[1][idx]))
+	}
+	
+	sort.Sort(byFirstValue(dataSlice[1]))
 
 	// Create hashes
+	// dataSetOne := sha256.New()
+	// dataSetTwo := sha256.New()
+
+	// dataSetOne.Write([]byte(dataSlice[0]))
+	// dataSetTwo.Write([]byte(dataSlice[1]))
 
 	// Compare and validate
 	isValid := ValidData{Valid: true};
