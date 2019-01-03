@@ -32,7 +32,7 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 
 	dataSlice := make([][][]string, 0)
 
-	// Map data into two arrays
+	// Map data into two arrays (todo: needs flatten object/arr func)
 	for _, v := range m {
 		rType := reflect.TypeOf(v)
 		if rType.Kind() == reflect.Slice {
@@ -55,6 +55,13 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 	fmt.Println(dataSlice[0])
 	fmt.Println(dataSlice[1])
 	
+	// Sort keys
+
+	// Sort datasets
+
+	// Create hashes
+
+	// Compare and validate
 	isValid := ValidData{Valid: true};
 	json.NewEncoder(w).Encode(isValid)
 }
