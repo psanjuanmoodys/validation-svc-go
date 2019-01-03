@@ -24,15 +24,11 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 	if readErr != nil {
 		panic(readErr)
 	}
-	// fmt.Println("===body ", str)
 	
 	unmarshalErr := json.Unmarshal([]byte(str), &m)
 	if unmarshalErr != nil {
 		panic(unmarshalErr)
 	}
-	
-	// fmt.Println("===body ", m)
-	// fmt.Println("===body ", m["dataSetOne"])
 
 	for k, v := range m {
 		rType := reflect.TypeOf(v)
@@ -40,7 +36,9 @@ func validateData (w http.ResponseWriter, r *http.Request) {
 			fmt.Println(v, ": ")
 			for ksub, vsub := range v {
 				fmt.Println(reflect.TypeOf(vsub).Kind())
-				fmt.Println("k: ", ksub, " v: ", vsub)
+				fmt.Println("k: ", ksub)
+				vmap := vsub.(map[string]interface{})
+				fmt.Println("distance: ", vmap["distance"], " dmp_id: ", vmap["dmp_id"], " apn: ", vmap["apn"])
 			}
 		} else {
 			fmt.Println("k: ", k, " v: ", v)
