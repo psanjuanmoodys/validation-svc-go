@@ -5,15 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/fatih/color"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"reflect"
 	"sort"
 	"strconv"
 )
 
-type ValidData struct {
+const port string = ":8000" // Configurable localhost port
+
+type validData struct {
 	DataHashOne string `json:"DataHashOne"`
 	DataHashTwo string `json:"DataHashTwo"`
 	Valid       bool   `json:"valid"`
@@ -45,6 +49,26 @@ func (v byFirstValue) Swap(i, j int) {
 
 func (v byFirstValue) Less(i, j int) bool {
 	return v[i][0][1] < v[j][0][1]
+}
+
+func loggingMiddleWare(next http.Handler) http.Handler {
+	green := color.New(color.FgGreen).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+		} else {
+			var method string
+			if(r.Method == "DELETE") {
+				method = red(r.Method)
+			} else {
+				method = green(r.Method)
+			}
+			log.Println(method, "-", r.RequestURI)
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func validateData(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +138,7 @@ func validateData(w http.ResponseWriter, r *http.Request) {
 	hashTwo := fmt.Sprintf("%x", dataSetTwo.Sum(nil))
 
 	// Compare and validate
-	isValid := ValidData{
+	isValid := validData{
 		Valid:       hashOne == hashTwo,
 		DataHashOne: hashOne,
 		DataHashTwo: hashTwo,
@@ -127,5 +151,11 @@ func main() {
 
 	r.HandleFunc("/api/validate", validateData).Methods("POST")
 
-	log.Fatal(http.ListenAndServe(":8000", r))
+	r.Use(loggingMiddleWare)
+
+	color.Set(color.FgCyan)
+	log.Println("Now running validation-svc-go on", port)
+	color.Unset()
+
+	log.Fatal(http.ListenAndServe(port, r))
 }
